@@ -1,12 +1,12 @@
 [package]
 name = "deb-rust"
-version = "0.1.2"
-authors = ["NotSludgeBomb <notsludgebomb@protonmail.com>"]
+version = "0.1.3"
+authors = ["NTeditor <nteditor4@gmail.com>", "NotSludgeBomb <notsludgebomb@protonmail.com>"]
 description = "Rust library for building and reading Deb packages"
 readme = "README.md"
 license = "GPL-3.0-or-later"
 keywords = ["deb", "dpkg", "apt", "debian", "ubuntu"]
-repository = "https://codeberg.org/notsludgebomb/deb-rust"
+repository = "https://github.com/nteditor/deb-rust"
 edition = "2021"
 
 [lib]
