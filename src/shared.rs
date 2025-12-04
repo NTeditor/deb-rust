@@ -40,6 +40,8 @@ pub enum DebArchitecture {
     I386,
     /// 64-bit x86_64
     Amd64,
+    Aarch64,
+    Arm,
     Ia64,
     M68k,
     Mips,
@@ -72,6 +74,8 @@ impl DebArchitecture {
             DebArchitecture::Armel => "Armel",
             DebArchitecture::Armhf => "armhf",
             DebArchitecture::Arm64 => "arm64",
+            DebArchitecture::Aarch64 => "aarch64",
+            DebArchitecture::Arm => "arm",
             DebArchitecture::Hppa => "hppa",
             DebArchitecture::I386 => "i386",
             DebArchitecture::Amd64 => "amd64",
@@ -105,6 +109,8 @@ impl DebArchitecture {
             "Armel" => Ok(DebArchitecture::Armel),
             "armhf" => Ok(DebArchitecture::Armhf),
             "arm64" => Ok(DebArchitecture::Arm64),
+            "aarch64" => Ok(DebArchitecture::Aarch64),
+            "arm" => Ok(DebArchitecture::Arm),
             "hppa" => Ok(DebArchitecture::Hppa),
             "i386" => Ok(DebArchitecture::I386),
             "amd64" => Ok(DebArchitecture::Amd64),
@@ -223,7 +229,12 @@ impl DebFile {
             contents: fs::read(&from)?,
             mode: fs::File::open(&from)?.metadata()?.mode(),
             path: PathBuf::from(&to),
-            mtime: fs::File::open(&from)?.metadata()?.modified()?.duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_secs(),
+            mtime: fs::File::open(&from)?
+                .metadata()?
+                .modified()?
+                .duration_since(std::time::SystemTime::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
         })
     }
 
