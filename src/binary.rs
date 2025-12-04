@@ -903,6 +903,13 @@ impl DebPackage {
 
         // Adding files to data tar
         for file in &self.data {
+            if file.path().is_absolute() {
+                if let Ok(path) = file.path().strip_prefix("/") {
+                    ensure_parent_directories(&mut data_tar, path)?;
+                }
+            } else {
+                ensure_parent_directories(&mut data_tar, file.path())?;
+            }
             let mut file_header = tar::Header::new_gnu();
             file_header.set_size(file.contents().len().try_into().unwrap());
             file_header.set_mode(*file.mode());
@@ -914,7 +921,14 @@ impl DebPackage {
                 match file.path().strip_prefix("/") {
                     Ok(path) => {
                         data_tar.append_data(&mut file_header, path, file.contents().as_slice())?;
-                        hash.push_str(format!("{:x}  {}\n", md5::compute(file.contents().as_slice()), path.display()).as_str());
+                        hash.push_str(
+                            format!(
+                                "{:x}  {}\n",
+                                md5::compute(file.contents().as_slice()),
+                                path.display()
+                            )
+                            .as_str(),
+                        );
                     }
                     Err(e) => {
                         return Err(Error::new(ErrorKind::Other, e));
@@ -922,7 +936,14 @@ impl DebPackage {
                 }
             } else {
                 data_tar.append_data(&mut file_header, file.path(), file.contents().as_slice())?;
-                hash.push_str(format!("{:x}  {}", md5::compute(file.contents().as_slice()), file.path().display()).as_str());
+                hash.push_str(
+                    format!(
+                        "{:x}  {}",
+                        md5::compute(file.contents().as_slice()),
+                        file.path().display()
+                    )
+                    .as_str(),
+                );
             }
         }
 
@@ -1153,4 +1174,23 @@ impl DebArchive {
 
         Ok(output)
     }
+}
+
+fn ensure_parent_directories(tar: &mut tar::Builder<Vec<u8>>, path: &Path) -> std::io::Result<()> {
+    let mut current = PathBuf::new();
+
+    for component in path.components() {
+        current.push(component);
+
+        if current != path {
+            let mut header = tar::Header::new_gnu();
+            header.set_entry_type(tar::EntryType::Directory);
+            header.set_size(0);
+            header.set_mode(0o755);
+            header.set_cksum();
+            tar.append_data(&mut header, &current, std::io::empty())?;
+        }
+    }
+
+    Ok(())
 }
